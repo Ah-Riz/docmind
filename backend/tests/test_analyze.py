@@ -101,6 +101,43 @@ def test_analyze_success():
     assert body["fee_lamports"] == 5000
     assert body["instructions"][0]["instruction_name"] == "transfer"
     assert body["ai"]["flow"].startswith("System transfer")
+    assert body["ai"]["model"] == settings.gemini_model
+    assert body["ai"]["fallback_used"] is False
+
+
+@respx.mock
+def test_analyze_falls_back_on_overload():
+    respx.post("https://api.mainnet-beta.solana.com").mock(
+        return_value=httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": SAMPLE_TX})
+    )
+
+    ai_payload = {
+        "flow": "Fell back successfully.",
+        "error_summary": "Transaction succeeded.",
+        "fixes": [],
+    }
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps(ai_payload)
+
+    overload = Exception("503 UNAVAILABLE. high demand")
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[overload, mock_resp])
+
+    with patch("app.ai.explain.genai.Client", return_value=mock_client):
+        with patch("app.ai.explain.asyncio.sleep", new_callable=AsyncMock):
+            res = client.post(
+                "/analyze",
+                json={
+                    "signature": "5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBhpZeBGGa8TZISbvZ4CsJwyDx3oWcAqPGmVMDqF87A7ZM4yg",
+                    "cluster": "mainnet-beta",
+                },
+            )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["ai"]["fallback_used"] is True
+    assert body["ai"]["model"] == "gemini-2.5-flash"
+    assert body["ai"]["flow"].startswith("Fell back")
 
 
 @respx.mock

@@ -7,7 +7,9 @@
 3. `getTransaction` (jsonParsed) returns the confirmed transaction.
 4. Decoder maps System / SPL Token / Compute Budget / ATA / Memo / Anchor discriminators.
 5. Log parser extracts `meta.err`, custom program errors, and Anchor error lines.
-6. Gemini (`GEMINI_MODEL`, default `gemini-2.0-flash`) returns JSON: flow, error_summary, fixes.
+6. Gemini (`GEMINI_MODEL`, default `gemini-3.8-flash`) returns JSON: flow, error_summary, fixes.
+   On 503/429 overload it tries `gemini-2.5-flash` → `gemini-2.5-flash-lite` → `gemini-2.0-flash`
+   and reports which model answered.
 7. Dashboard renders status, AI panel, instruction timeline, errors, and logs.
 
 ## Stateless design

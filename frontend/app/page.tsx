@@ -36,6 +36,8 @@ type AnalyzeResponse = {
     flow: string;
     error_summary: string;
     fixes: string[];
+    model: string;
+    fallback_used: boolean;
   };
 };
 
@@ -152,7 +154,15 @@ export default function HomePage() {
           </section>
 
           <section className="elev p-5">
-            <h2 className="text-sm font-semibold text-ink">AI explanation</h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-sm font-semibold text-ink">AI explanation</h2>
+              {result.ai.model && (
+                <p className="font-mono text-xs text-muted">
+                  Model: {result.ai.model}
+                  {result.ai.fallback_used ? " (fallback)" : ""}
+                </p>
+              )}
+            </div>
             <p className="mt-3 text-sm leading-relaxed text-ink">{result.ai.flow}</p>
             <div
               className="mt-4 rounded-md border p-3 text-sm"

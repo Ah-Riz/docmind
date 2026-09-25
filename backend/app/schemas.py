@@ -34,6 +34,8 @@ class AiExplanation(BaseModel):
     flow: str
     error_summary: str
     fixes: list[str] = Field(default_factory=list)
+    model: str = ""
+    fallback_used: bool = False
 
 
 class AnalyzeResponse(BaseModel):
