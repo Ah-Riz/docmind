@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -66,7 +67,10 @@ SAMPLE_TX = {
 def test_health():
     res = client.get("/health")
     assert res.status_code == 200
-    assert res.json()["service"] == "solana-explorer-ai"
+    body = res.json()
+    assert body["service"] == "solana-explorer-ai"
+    assert body["status"] == "ok"
+    assert body["gemini_configured"] is True
 
 
 @respx.mock
@@ -206,3 +210,77 @@ def test_analyze_requires_gemini_key():
         assert res.status_code == 503
     finally:
         settings.gemini_api_key = prev
+
+
+@respx.mock
+def test_analyze_rpc_error_message_is_clear():
+    respx.post("https://api.mainnet-beta.solana.com").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "error": {"code": -32602, "message": "Invalid param: Invalid"},
+            },
+        )
+    )
+    res = client.post(
+        "/analyze",
+        json={
+            "signature": "5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBhpZeBGGa8TZISbvZ4CsJwyDx3oWcAqPGmVMDqF87A7ZM4yg",
+            "cluster": "mainnet-beta",
+        },
+    )
+    assert res.status_code == 502
+    detail = res.json()["detail"]
+    assert "Solana RPC error" in detail
+    assert "Invalid param: Invalid" in detail
+    assert "{" not in detail
+
+
+@respx.mock
+def test_golden_failed_spl_transfer_errors():
+    """Known failed Token transfer: InstructionError Custom 1 → expected error fields."""
+    fixture_path = Path(__file__).parent / "fixtures" / "failed_spl_transfer.json"
+    failed_tx = json.loads(fixture_path.read_text())
+
+    respx.post("https://api.mainnet-beta.solana.com").mock(
+        return_value=httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": failed_tx})
+    )
+
+    ai_payload = {
+        "flow": "SPL Token transfer attempted.",
+        "error_summary": "Insufficient funds (custom program error 0x1).",
+        "fixes": ["Fund the source token account before retrying."],
+    }
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps(ai_payload)
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_resp)
+
+    with patch("app.ai.explain.genai.Client", return_value=mock_client):
+        res = client.post(
+            "/analyze",
+            json={
+                "signature": "64jDk9vkg1yJ57jvrR3ejqiZpKCzRh3Xwm2NCBbMnhmVXVFYvjSY3PtDmw9ZjMKxhK3jjVnNXnK1h9hWWnGi8Wve",
+                "cluster": "mainnet-beta",
+            },
+        )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["status"] == "failed"
+    assert body["fee_lamports"] == 5000
+    assert body["instructions"][0]["program_name"] == "SPL Token"
+    assert body["instructions"][0]["instruction_name"] == "transfer"
+
+    tx_errs = [e for e in body["errors"] if e["kind"] == "transaction"]
+    assert len(tx_errs) == 1
+    assert tx_errs[0]["custom_code"] == 1
+    assert tx_errs[0]["instruction_index"] == 0
+    assert "0x1" in tx_errs[0]["message"]
+
+    log_errs = [e for e in body["errors"] if e["kind"] == "log"]
+    assert any(e.get("custom_code") == 1 for e in log_errs)
+    assert any("insufficient funds" in line.lower() for line in body["logs"])
+    assert body["ai"]["error_summary"].startswith("Insufficient funds")

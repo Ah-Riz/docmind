@@ -22,3 +22,5 @@ build/
 coverage/
 htmlcov/
 uploads/
+
+.playwright-mcp/

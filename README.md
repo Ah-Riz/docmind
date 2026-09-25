@@ -1,5 +1,12 @@
 # Solana Explorer AI
 
+Signature → decode → logs → Gemini fixes. Portfolio / lab — not a full indexer.
+
+**Live demo:** https://docmind.ahmadmaulana.net/
+
+[![CI](https://github.com/Ah-Riz/docmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Ah-Riz/docmind/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ## Recruiter takeaway
 
 > Builds Solana tooling end to end: RPC fetch, instruction decoding, log analysis, and structured LLM explanations — not a chat wrapper over explorer links.
@@ -8,28 +15,17 @@
 
 **Success criteria:** A reviewer concludes the author can debug on-chain failures and explain them to developers.
 
----
+## Try it
 
-## Honest framing
+Open the [live demo](https://docmind.ahmadmaulana.net/), keep **mainnet-beta**, paste a signature, click **Analyze**.
 
-Portfolio / lab project shaped like production. Not a full indexer or IDL registry. The focus is the debug loop: signature → decode → errors → AI fixes.
+| Cluster | Signature | What you should see |
+|---------|-----------|---------------------|
+| mainnet-beta | `64jDk9vkg1yJ57jvrR3ejqiZpKCzRh3Xwm2NCBbMnhmVXVFYvjSY3PtDmw9ZjMKxhK3jjVnNXnK1h9hWWnGi8Wve` | **Failed** SPL Token transfer — insufficient funds, custom error `0x1` |
 
-## Problem
+![Analyze result for a failed SPL Token transfer](docs/assets/analyze-failed.png)
 
-Failed Solana transactions hide the useful signal in raw logs and custom program errors. Developers need a short path from a signature to what broke and what to try next.
-
-```
-Signature → Solana RPC → decode ix + parse logs → Gemini → flow / errors / fixes
-```
-
-## MVP features
-
-- Fetch transaction by signature (mainnet-beta / devnet / testnet)
-- Decode System, SPL Token, Compute Budget, ATA, Memo, Anchor discriminators
-- Extract instruction and custom program errors from meta + logs
-- AI explanation: transaction flow, error summary, fix recommendations
-- Elevated Tosca developer dashboard (Next.js)
-- Docker, tests, Cloudflare Pages + Render deploy docs
+Honest framing: portfolio shaped like production. Not an IDL registry or historical indexer. Focus is the debug loop.
 
 ## Architecture
 
@@ -45,7 +41,7 @@ flowchart LR
   LLM --> UI
 ```
 
-## Tech stack
+## Stack
 
 | Layer | Choices |
 |-------|---------|
@@ -53,19 +49,9 @@ flowchart LR
 | Chain | Public Solana RPC (overridable) |
 | Frontend | Next.js 14 static export, Tailwind, Elevated Tosca |
 | Deploy | Cloudflare Pages (UI), Render (API) |
-| Ops | Docker Compose, pytest |
+| Ops | Docker Compose, pytest, GitHub Actions |
 
-## API example
-
-```bash
-curl -X POST http://localhost:8001/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"signature":"<BASE58_SIG>","cluster":"mainnet-beta"}'
-```
-
-Requires `GEMINI_API_KEY` on the server.
-
-## Installation
+## Quick start
 
 ```bash
 cp .env.example .env
@@ -80,7 +66,11 @@ cd ../frontend && npm install && npm run dev
 
 Or: `docker compose up --build` for the API.
 
-Deploy steps: [docs/deploy.md](docs/deploy.md).
+```bash
+curl -X POST http://localhost:8001/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"signature":"64jDk9vkg1yJ57jvrR3ejqiZpKCzRh3Xwm2NCBbMnhmVXVFYvjSY3PtDmw9ZjMKxhK3jjVnNXnK1h9hWWnGi8Wve","cluster":"mainnet-beta"}'
+```
 
 ## Tests
 
@@ -89,14 +79,28 @@ cd backend && source .venv/bin/activate
 pytest -q
 ```
 
-RPC and Gemini are mocked in tests.
+RPC and Gemini are mocked. CI runs the same suite on every push/PR.
 
-## Out of scope (MVP)
+## What I own
+
+- Solana RPC client (`getTransaction`, clear error messages)
+- Instruction decode (System, SPL Token, Compute Budget, ATA, Memo, Anchor discriminators)
+- Log / `meta.err` / custom program error extraction
+- Gemini explanation with model fallback chain
+- FastAPI `/health` + `/analyze`
+- Next.js developer dashboard
+- Docker Compose, pytest (including golden failed-tx fixture), Cloudflare Pages + Render deploy docs
+
+## Out of scope
 
 - Custom IDL upload UI
 - Wallet connect
 - Historical account indexing
 - Multi-tenant auth
+
+## Deploy
+
+Production: **https://docmind.ahmadmaulana.net/** (API on Render). Steps: [docs/deploy.md](docs/deploy.md).
 
 ## License
 

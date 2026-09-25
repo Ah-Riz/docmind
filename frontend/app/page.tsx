@@ -48,6 +48,10 @@ type AnalyzeResponse = {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001";
 
+/** Known failed mainnet SPL Token transfer (insufficient funds / custom 0x1). */
+const EXAMPLE_FAILED_SIG =
+  "64jDk9vkg1yJ57jvrR3ejqiZpKCzRh3Xwm2NCBbMnhmVXVFYvjSY3PtDmw9ZjMKxhK3jjVnNXnK1h9hWWnGi8Wve";
+
 function shortKey(key: string, n = 4): string {
   if (key.length <= n * 2 + 3) return key;
   return `${key.slice(0, n)}…${key.slice(-n)}`;
@@ -140,6 +144,23 @@ export default function HomePage() {
           {busy ? "Analyzing…" : "Analyze"}
         </button>
       </form>
+
+      <p className="px-1 text-xs text-muted">
+        Try a known failed mainnet tx:{" "}
+        <button
+          type="button"
+          className="font-medium text-tosca-700 underline-offset-2 hover:underline"
+          disabled={busy}
+          onClick={() => {
+            setSignature(EXAMPLE_FAILED_SIG);
+            setCluster("mainnet-beta");
+            setError(null);
+            setResult(null);
+          }}
+        >
+          SPL Token insufficient funds
+        </button>
+      </p>
 
       {error && (
         <div

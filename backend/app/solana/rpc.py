@@ -31,7 +31,14 @@ async def get_transaction(rpc_url: str, signature: str) -> dict[str, Any]:
 
     body = resp.json()
     if "error" in body:
-        raise HTTPException(status_code=502, detail=f"Solana RPC error: {body['error']}")
+        err = body["error"]
+        if isinstance(err, dict):
+            msg = err.get("message") or err.get("data") or str(err)
+            code = err.get("code")
+            detail = f"Solana RPC error: {msg}" if code is None else f"Solana RPC error ({code}): {msg}"
+        else:
+            detail = f"Solana RPC error: {err}"
+        raise HTTPException(status_code=502, detail=detail)
 
     result = body.get("result")
     if result is None:

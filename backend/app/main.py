@@ -27,8 +27,13 @@ app.add_middleware(
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "service": "solana-explorer-ai"}
+def health() -> dict[str, object]:
+    """Liveness for Render. Always 200 when the process is up; Gemini is checked at /analyze."""
+    return {
+        "status": "ok",
+        "service": "solana-explorer-ai",
+        "gemini_configured": gemini_key_is_plausible(settings.gemini_api_key),
+    }
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)

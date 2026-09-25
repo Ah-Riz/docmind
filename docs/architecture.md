@@ -29,6 +29,7 @@ No database. Each request is independent. Suitable for Render free tier and Clou
 
 ## Error handling
 
-- Missing tx → 404
-- RPC / Gemini transport failures → 502
+- Missing tx → 404 with a clear signature/cluster hint
+- RPC / Gemini transport failures → 502 (RPC messages prefer the JSON-RPC `message` field)
 - Missing or invalid `GEMINI_API_KEY` → 503
+- `/health` stays 200 for Render liveness and reports `gemini_configured`

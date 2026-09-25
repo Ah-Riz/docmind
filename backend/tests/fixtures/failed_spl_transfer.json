@@ -1,0 +1,45 @@
+{
+  "slot": 237418014,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        {"pubkey": "3dHX9JC69yL1A5xNhQiynjsoxmqt7ZPBpyM1syEaAiV5"},
+        {"pubkey": "7KcZg7qmLTgqgcWtRFt2BvfbqDNndwDHBzcS7bg2WA3v"},
+        {"pubkey": "7ogM5CucaxGxX491DumRbSshoN34KMqyq6zHrVspEdoF"},
+        {"pubkey": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"}
+      ],
+      "instructions": [
+        {
+          "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "accounts": [
+            "7KcZg7qmLTgqgcWtRFt2BvfbqDNndwDHBzcS7bg2WA3v",
+            "7ogM5CucaxGxX491DumRbSshoN34KMqyq6zHrVspEdoF",
+            "3dHX9JC69yL1A5xNhQiynjsoxmqt7ZPBpyM1syEaAiV5"
+          ],
+          "parsed": {
+            "type": "transfer",
+            "info": {
+              "source": "7KcZg7qmLTgqgcWtRFt2BvfbqDNndwDHBzcS7bg2WA3v",
+              "destination": "7ogM5CucaxGxX491DumRbSshoN34KMqyq6zHrVspEdoF",
+              "authority": "3dHX9JC69yL1A5xNhQiynjsoxmqt7ZPBpyM1syEaAiV5",
+              "amount": "2553674839255000"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "meta": {
+    "err": {"InstructionError": [0, {"Custom": 1}]},
+    "fee": 5000,
+    "computeUnitsConsumed": 4299,
+    "logMessages": [
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+      "Program log: Instruction: Transfer",
+      "Program log: Error: insufficient funds",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4299 of 200000 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: custom program error: 0x1"
+    ],
+    "innerInstructions": []
+  }
+}

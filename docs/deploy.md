@@ -1,5 +1,15 @@
 # Deploy — Cloudflare Pages + Render
 
+## Production URLs
+
+| Surface | URL |
+|---------|-----|
+| UI (custom domain) | https://docmind.ahmadmaulana.net |
+| UI (Pages) | https://docmind-dbw.pages.dev |
+| API (Render) | https://docmind-d3bb.onrender.com |
+
+Health: `GET https://docmind-d3bb.onrender.com/health`
+
 ## Backend (Render)
 
 Connect the GitHub repo as a Web Service (not via this Actions workflow).
@@ -13,18 +23,18 @@ Connect the GitHub repo as a Web Service (not via this Actions workflow).
    - `GEMINI_MODEL=gemini-3.8-flash` (falls back to `gemini-3.7-flash` then `gemini-3.5-flash-lite` on 503/429/retired 404)
    - `CORS_ORIGINS=https://docmind.ahmadmaulana.net,https://docmind-dbw.pages.dev,http://localhost:3001`
    - `SOLANA_RPC_URL` optional
-4. Health check: `/health`
+4. Health check path: `/health` (always 200 when the process is up; includes `gemini_configured`)
 
 Remove any old `OPENAI_API_KEY` / `OPENAI_MODEL` env vars.
 
-Production Pages URL: **https://docmind-dbw.pages.dev** (and custom domain if configured). Keep `CORS_ORIGINS` aligned with the production host.
+Keep `CORS_ORIGINS` aligned with the production host. Set GitHub secret `NEXT_PUBLIC_API_URL` to `https://docmind-d3bb.onrender.com` (no trailing slash).
 
 ## Frontend (GitHub Actions → Cloudflare Pages)
 
 On every push to `main`, [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
 
 1. Runs backend pytest
-2. Builds `frontend` with `NEXT_PUBLIC_API_URL`
+2. Lints and builds `frontend` with `NEXT_PUBLIC_API_URL`
 3. Ensures Pages project **`docmind`** exists, then deploys `frontend/out` via Wrangler
 
 ### GitHub Actions secrets
@@ -39,7 +49,7 @@ Backend secrets (`GEMINI_API_KEY`, etc.) belong on Render; they are unused by th
 
 Cloudflare API token needs **Account → Cloudflare Pages → Edit**.
 
-Pull requests run pytest only (no Pages deploy).
+Pull requests run pytest + frontend lint (no Pages deploy).
 
 ## Local
 
