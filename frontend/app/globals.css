@@ -91,11 +91,49 @@ body {
   color: var(--color-muted);
 }
 
+.analyze-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 3px solid var(--color-secondary);
+  border-top-color: var(--color-tosca-600);
+  border-right-color: var(--color-tosca-500);
+  animation: analyze-spin 0.8s linear infinite;
+}
+
+.analyze-step {
+  animation: analyze-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes analyze-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes analyze-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn-primary {
     transition: none;
   }
   .btn-primary:active:not(:disabled) {
     transform: none;
+  }
+  .analyze-spinner {
+    animation: none;
+    border-color: var(--color-tosca-600);
+  }
+  .analyze-step {
+    animation: none;
+    opacity: 1;
   }
 }

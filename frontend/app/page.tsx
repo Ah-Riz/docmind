@@ -1,6 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+
+const ANALYZE_STEPS = [
+  "Fetching on-chain data…",
+  "Decoding instructions…",
+  "Generating AI explanation…",
+] as const;
 
 type Cluster = "mainnet-beta" | "devnet" | "testnet";
 
@@ -54,6 +60,18 @@ export default function HomePage() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    if (!busy) {
+      setStepIndex(0);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setStepIndex((i) => (i + 1) % ANALYZE_STEPS.length);
+    }, 2200);
+    return () => window.clearInterval(id);
+  }, [busy]);
 
   async function onAnalyze(e: FormEvent) {
     e.preventDefault();
@@ -132,6 +150,21 @@ export default function HomePage() {
         >
           {error}
         </div>
+      )}
+
+      {busy && (
+        <section
+          className="elev flex flex-col items-center gap-4 p-10 text-center"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="analyze-spinner" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-semibold text-ink">Analyzing transaction…</p>
+            <p className="analyze-step mt-2 text-sm text-muted">{ANALYZE_STEPS[stepIndex]}</p>
+          </div>
+        </section>
       )}
 
       {result && (
