@@ -8,7 +8,8 @@
 4. Decoder maps System / SPL Token / Compute Budget / ATA / Memo / Anchor discriminators.
 5. Log parser extracts `meta.err`, custom program errors, and Anchor error lines.
 6. Gemini (`GEMINI_MODEL`, default `gemini-3.8-flash`) returns JSON: flow, error_summary, fixes.
-   On 503/429 overload it tries `gemini-2.5-flash` → `gemini-2.5-flash-lite` → `gemini-2.0-flash`
+   On 503/429/404 (retired) it tries `gemini-3.7-flash` → `gemini-3.6-flash` →
+   `gemini-3.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`
    and reports which model answered.
 7. Dashboard renders status, AI panel, instruction timeline, errors, and logs.
 

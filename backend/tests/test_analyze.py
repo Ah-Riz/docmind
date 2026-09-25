@@ -136,8 +136,44 @@ def test_analyze_falls_back_on_overload():
     assert res.status_code == 200
     body = res.json()
     assert body["ai"]["fallback_used"] is True
-    assert body["ai"]["model"] == "gemini-2.5-flash"
+    assert body["ai"]["model"] == "gemini-3.7-flash"
     assert body["ai"]["flow"].startswith("Fell back")
+
+
+@respx.mock
+def test_analyze_skips_retired_model_404():
+    respx.post("https://api.mainnet-beta.solana.com").mock(
+        return_value=httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": SAMPLE_TX})
+    )
+
+    ai_payload = {
+        "flow": "Skipped retired model.",
+        "error_summary": "Transaction succeeded.",
+        "fixes": [],
+    }
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps(ai_payload)
+
+    retired = Exception(
+        "404 NOT_FOUND. This model models/gemini-2.5-flash is no longer available to new users."
+    )
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[retired, mock_resp])
+
+    with patch("app.ai.explain.genai.Client", return_value=mock_client):
+        with patch("app.ai.explain.asyncio.sleep", new_callable=AsyncMock):
+            res = client.post(
+                "/analyze",
+                json={
+                    "signature": "5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBhpZeBGGa8TZISbvZ4CsJwyDx3oWcAqPGmVMDqF87A7ZM4yg",
+                    "cluster": "mainnet-beta",
+                },
+            )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["ai"]["fallback_used"] is True
+    assert body["ai"]["model"] == "gemini-3.7-flash"
 
 
 @respx.mock

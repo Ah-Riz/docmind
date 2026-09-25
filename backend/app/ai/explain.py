@@ -15,9 +15,11 @@ logger = logging.getLogger("solana-explorer-ai")
 
 FALLBACK_MODELS = (
     "gemini-3.8-flash",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.0-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
 )
 
 SYSTEM_PROMPT = """You are a Solana developer tools engineer helping debug transactions.
@@ -54,19 +56,22 @@ def _model_chain(primary: str) -> list[str]:
     return ordered
 
 
-def _is_overload_error(exc: BaseException) -> bool:
+def _should_try_next_model(exc: BaseException) -> bool:
     text = str(exc).lower()
     code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
-    if code in (429, 503):
+    if code in (404, 429, 503):
         return True
     markers = (
         "503",
         "429",
+        "404",
         "unavailable",
         "high demand",
         "resource_exhausted",
         "resource exhausted",
         "model_capacity_exhausted",
+        "not_found",
+        "no longer available",
     )
     return any(m in text for m in markers)
 
@@ -132,8 +137,8 @@ async def explain_transaction(
             )
         except Exception as exc:
             last_exc = exc
-            if _is_overload_error(exc) and idx < len(chain) - 1:
-                logger.warning("Gemini model %s overloaded (%s); trying next", candidate, exc)
+            if _should_try_next_model(exc) and idx < len(chain) - 1:
+                logger.warning("Gemini model %s unavailable (%s); trying next", candidate, exc)
                 await asyncio.sleep(0.4)
                 continue
             raise HTTPException(status_code=502, detail=f"Gemini request failed: {exc}") from exc

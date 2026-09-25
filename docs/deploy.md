@@ -10,7 +10,7 @@ Connect the GitHub repo as a Web Service (not via this Actions workflow).
    - Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 3. Environment on Render:
    - `GEMINI_API_KEY` (required — from https://aistudio.google.com/apikey)
-   - `GEMINI_MODEL=gemini-3.8-flash` (falls back automatically if overloaded)
+   - `GEMINI_MODEL=gemini-3.8-flash` (falls back through Gemini 3.x Flash models on 503/429/retired 404)
    - `CORS_ORIGINS=https://docmind.ahmadmaulana.net,https://docmind-dbw.pages.dev,http://localhost:3001`
    - `SOLANA_RPC_URL` optional
 4. Health check: `/health`
