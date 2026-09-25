@@ -14,12 +14,8 @@ from app.schemas import AiExplanation, DecodedInstruction, TxError
 logger = logging.getLogger("solana-explorer-ai")
 
 FALLBACK_MODELS = (
-    "gemini-3.8-flash",
     "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
 )
 
 SYSTEM_PROMPT = """You are a Solana developer tools engineer helping debug transactions.
@@ -107,12 +103,6 @@ async def explain_transaction(
     logs: list[str],
     errors: list[TxError],
 ) -> AiExplanation:
-    if not api_key:
-        raise HTTPException(
-            status_code=503,
-            detail="GEMINI_API_KEY is not configured on the server.",
-        )
-
     client = genai.Client(api_key=api_key)
     user_content = json.dumps(
         _payload(signature, status, instructions, logs, errors),

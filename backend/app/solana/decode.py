@@ -22,15 +22,6 @@ PROGRAM_NAMES: dict[str, str] = {
     MEMO_PROGRAM: "Memo",
 }
 
-# Anchor: first 8 bytes = sha256("global:<name>")[:8]
-# Well-known discriminators for common Anchor programs (partial map)
-ANCHOR_DISCRIMINATORS: dict[bytes, str] = {
-    bytes.fromhex("afaf6d1f0d989bed"): "initialize",
-    bytes.fromhex("b712469c946da122"): "initialize",
-    bytes.fromhex("f7efe0c9681c9c8e"): "create",
-    bytes.fromhex("e445a52e51cb9a1d"): "event_cpi",
-}
-
 SYSTEM_IX: dict[int, str] = {
     0: "CreateAccount",
     1: "Assign",
@@ -167,16 +158,11 @@ def decode_instruction(
             instruction_name = "Memo"
 
     elif raw is not None and len(raw) >= 8:
+        # Anchor: first 8 bytes = sha256("global:<name>")[:8]; name needs IDL
         disc = raw[:8]
-        name = ANCHOR_DISCRIMINATORS.get(disc)
-        if name:
-            program_name = "Anchor Program"
-            instruction_name = name
-            args["discriminator"] = disc.hex()
-        else:
-            program_name = PROGRAM_NAMES.get(program_id, "Anchor/Custom Program")
-            instruction_name = "anchor_ix"
-            args["discriminator"] = disc.hex()
+        program_name = PROGRAM_NAMES.get(program_id, "Anchor/Custom Program")
+        instruction_name = "anchor_ix"
+        args["discriminator"] = disc.hex()
 
     return DecodedInstruction(
         index=index,

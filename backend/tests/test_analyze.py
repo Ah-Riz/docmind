@@ -18,6 +18,7 @@ from app.config import settings
 from app.main import app
 
 settings.gemini_api_key = TEST_GEMINI_KEY
+settings.solana_rpc_url = ""
 
 client = TestClient(app)
 

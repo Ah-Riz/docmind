@@ -34,7 +34,6 @@ type AnalyzeResponse = {
   slot: number | null;
   fee_lamports: number | null;
   compute_units: number | null;
-  accounts: string[];
   instructions: DecodedInstruction[];
   logs: string[];
   errors: TxError[];
