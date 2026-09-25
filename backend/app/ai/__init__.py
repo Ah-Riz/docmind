@@ -1,1 +1,1 @@
-"""OpenAI explanation helpers."""
+"""Gemini explanation helpers."""

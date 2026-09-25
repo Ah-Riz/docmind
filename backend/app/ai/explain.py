@@ -4,7 +4,8 @@ import json
 from typing import Any
 
 from fastapi import HTTPException
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 
 from app.schemas import AiExplanation, DecodedInstruction, TxError
 
@@ -48,33 +49,33 @@ async def explain_transaction(
     if not api_key:
         raise HTTPException(
             status_code=503,
-            detail="OPENAI_API_KEY is not configured on the server.",
+            detail="GEMINI_API_KEY is not configured on the server.",
         )
 
-    client = AsyncOpenAI(api_key=api_key)
+    client = genai.Client(api_key=api_key)
     user_content = json.dumps(
         _payload(signature, status, instructions, logs, errors),
         default=str,
     )
 
     try:
-        resp = await client.chat.completions.create(
+        resp = await client.aio.models.generate_content(
             model=model,
-            temperature=0.2,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
+            contents=user_content,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.2,
+                response_mime_type="application/json",
+            ),
         )
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"OpenAI request failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Gemini request failed: {exc}") from exc
 
-    content = resp.choices[0].message.content or "{}"
+    content = getattr(resp, "text", None) or "{}"
     try:
         data = json.loads(content)
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=502, detail="OpenAI returned invalid JSON") from exc
+        raise HTTPException(status_code=502, detail="Gemini returned invalid JSON") from exc
 
     fixes = data.get("fixes") or []
     if isinstance(fixes, str):

@@ -9,13 +9,15 @@ Connect the GitHub repo as a Web Service (not via this Actions workflow).
    - Build: `pip install -r requirements.txt`
    - Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 3. Environment on Render:
-   - `OPENAI_API_KEY` (required)
-   - `OPENAI_MODEL=gpt-4o-mini`
-   - `CORS_ORIGINS=https://docmind-dbw.pages.dev,http://localhost:3001`
+   - `GEMINI_API_KEY` (required — from https://aistudio.google.com/apikey)
+   - `GEMINI_MODEL=gemini-2.0-flash`
+   - `CORS_ORIGINS=https://docmind.ahmadmaulana.net,https://docmind-dbw.pages.dev,http://localhost:3001`
    - `SOLANA_RPC_URL` optional
 4. Health check: `/health`
 
-Production Pages URL: **https://docmind-dbw.pages.dev** (Cloudflare may also show a per-deploy `*.docmind-dbw.pages.dev` URL). Keep `CORS_ORIGINS` aligned with the production host.
+Remove any old `OPENAI_API_KEY` / `OPENAI_MODEL` env vars.
+
+Production Pages URL: **https://docmind-dbw.pages.dev** (and custom domain if configured). Keep `CORS_ORIGINS` aligned with the production host.
 
 ## Frontend (GitHub Actions → Cloudflare Pages)
 
@@ -33,7 +35,7 @@ On every push to `main`, [`.github/workflows/ci.yml`](../.github/workflows/ci.ym
 | `CLOUDFLARE_ACCOUNT_ID` | Wrangler Pages deploy |
 | `NEXT_PUBLIC_API_URL` | Next.js build (Render API base URL) |
 
-Backend secrets (`OPENAI_API_KEY`, etc.) belong on Render; they are unused by the Pages job.
+Backend secrets (`GEMINI_API_KEY`, etc.) belong on Render; they are unused by the Pages job.
 
 Cloudflare API token needs **Account → Cloudflare Pages → Edit**.
 
@@ -43,7 +45,7 @@ Pull requests run pytest only (no Pages deploy).
 
 ```bash
 cp .env.example .env
-# set OPENAI_API_KEY
+# set GEMINI_API_KEY
 
 docker compose up --build
 # API: http://localhost:8001

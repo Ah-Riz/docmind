@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 CLUSTER_RPC: dict[str, str] = {
@@ -9,13 +10,38 @@ CLUSTER_RPC: dict[str, str] = {
 }
 
 
+def normalize_gemini_key(raw: str) -> str:
+    """Strip whitespace/quotes; drop inline comments (dotenv may keep them)."""
+    key = (raw or "").strip().strip("'").strip('"')
+    if " #" in key:
+        key = key.split(" #", 1)[0].strip()
+    return key
+
+
+def gemini_key_is_plausible(key: str) -> bool:
+    """Google AI Studio keys typically start with AIza and are long."""
+    if not key.startswith("AIza"):
+        return False
+    if len(key) < 20:
+        return False
+    low = key.lower()
+    if any(p in low for p in ("1234", "xxxx", "your_api", "placeholder", "example")):
+        return False
+    return True
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
     solana_rpc_url: str = ""
     cors_origins: str = "http://localhost:3001"
+
+    @field_validator("gemini_api_key", mode="before")
+    @classmethod
+    def _clean_gemini_key(cls, v: object) -> str:
+        return normalize_gemini_key(str(v or ""))
 
     @property
     def cors_origin_list(self) -> list[str]:

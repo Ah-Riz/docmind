@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Pytest
         env:
-          OPENAI_API_KEY: test-key
+          GEMINI_API_KEY: AIzaSyDummyTestKeyForUnitTestsOnlyZZ
         run: python -m pytest -q
 
   deploy-frontend:

@@ -19,7 +19,7 @@ Portfolio / lab project shaped like production. Not a full indexer or IDL regist
 Failed Solana transactions hide the useful signal in raw logs and custom program errors. Developers need a short path from a signature to what broke and what to try next.
 
 ```
-Signature → Solana RPC → decode ix + parse logs → OpenAI → flow / errors / fixes
+Signature → Solana RPC → decode ix + parse logs → Gemini → flow / errors / fixes
 ```
 
 ## MVP features
@@ -41,7 +41,7 @@ flowchart LR
   API --> RPC[Solana RPC]
   API --> Decode[Instruction decoder]
   API --> Logs[Log parser]
-  API --> LLM[OpenAI]
+  API --> LLM[Gemini]
   LLM --> UI
 ```
 
@@ -49,7 +49,7 @@ flowchart LR
 
 | Layer | Choices |
 |-------|---------|
-| Backend | FastAPI, httpx, OpenAI SDK |
+| Backend | FastAPI, httpx, Google GenAI (Gemini) |
 | Chain | Public Solana RPC (overridable) |
 | Frontend | Next.js 14 static export, Tailwind, Elevated Tosca |
 | Deploy | Cloudflare Pages (UI), Render (API) |
@@ -63,13 +63,13 @@ curl -X POST http://localhost:8001/analyze \
   -d '{"signature":"<BASE58_SIG>","cluster":"mainnet-beta"}'
 ```
 
-Requires `OPENAI_API_KEY` on the server.
+Requires `GEMINI_API_KEY` on the server.
 
 ## Installation
 
 ```bash
 cp .env.example .env
-# set OPENAI_API_KEY
+# set GEMINI_API_KEY
 
 cd backend && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -89,7 +89,7 @@ cd backend && source .venv/bin/activate
 pytest -q
 ```
 
-RPC and OpenAI are mocked in tests.
+RPC and Gemini are mocked in tests.
 
 ## Out of scope (MVP)
 

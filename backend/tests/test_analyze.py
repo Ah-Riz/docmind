@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import respx
@@ -10,12 +10,14 @@ from fastapi.testclient import TestClient
 # Ensure settings load with a key before app import paths rebind
 import os
 
-os.environ.setdefault("OPENAI_API_KEY", "test-key-not-real")
+TEST_GEMINI_KEY = "AIzaSyDummyTestKeyForUnitTestsOnlyZZ"
+
+os.environ.setdefault("GEMINI_API_KEY", TEST_GEMINI_KEY)
 
 from app.config import settings
 from app.main import app
 
-settings.openai_api_key = "test-key-not-real"
+settings.gemini_api_key = TEST_GEMINI_KEY
 
 client = TestClient(app)
 
@@ -78,13 +80,13 @@ def test_analyze_success():
         "fixes": [],
     }
 
-    mock_resp = AsyncMock()
-    mock_resp.choices = [AsyncMock(message=AsyncMock(content=json.dumps(ai_payload)))]
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps(ai_payload)
 
-    with patch("app.ai.explain.AsyncOpenAI") as mock_openai:
-        instance = mock_openai.return_value
-        instance.chat.completions.create = AsyncMock(return_value=mock_resp)
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_resp)
 
+    with patch("app.ai.explain.genai.Client", return_value=mock_client):
         res = client.post(
             "/analyze",
             json={
@@ -116,9 +118,9 @@ def test_analyze_not_found():
     assert res.status_code == 404
 
 
-def test_analyze_requires_openai_key():
-    prev = settings.openai_api_key
-    settings.openai_api_key = ""
+def test_analyze_requires_gemini_key():
+    prev = settings.gemini_api_key
+    settings.gemini_api_key = ""
     try:
         res = client.post(
             "/analyze",
@@ -129,4 +131,4 @@ def test_analyze_requires_openai_key():
         )
         assert res.status_code == 503
     finally:
-        settings.openai_api_key = prev
+        settings.gemini_api_key = prev

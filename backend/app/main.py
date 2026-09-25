@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai.explain import explain_transaction
-from app.config import settings
+from app.config import gemini_key_is_plausible, settings
 from app.schemas import AnalyzeRequest, AnalyzeResponse
 from app.solana.decode import decode_transaction
 from app.solana.logs import extract_errors, status_from_meta
@@ -33,10 +33,19 @@ def health() -> dict[str, str]:
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(body: AnalyzeRequest) -> AnalyzeResponse:
-    if not settings.openai_api_key:
+    if not settings.gemini_api_key:
         raise HTTPException(
             status_code=503,
-            detail="OPENAI_API_KEY is not configured on the server.",
+            detail="GEMINI_API_KEY is not configured on the server.",
+        )
+    if not gemini_key_is_plausible(settings.gemini_api_key):
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "GEMINI_API_KEY is not a valid Google AI Studio key. "
+                "Create a key at https://aistudio.google.com/apikey "
+                "(typically starts with AIza), set it on Render, and redeploy."
+            ),
         )
 
     rpc_url = settings.rpc_for(body.cluster)
@@ -49,8 +58,8 @@ async def analyze(body: AnalyzeRequest) -> AnalyzeResponse:
 
     meta = tx.get("meta") or {}
     ai = await explain_transaction(
-        api_key=settings.openai_api_key,
-        model=settings.openai_model,
+        api_key=settings.gemini_api_key,
+        model=settings.gemini_model,
         signature=body.signature,
         status=status,
         instructions=instructions,
