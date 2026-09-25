@@ -23,7 +23,7 @@ On every push to `main`, [`.github/workflows/ci.yml`](../.github/workflows/ci.ym
 
 1. Runs backend pytest
 2. Builds `frontend` with `NEXT_PUBLIC_API_URL`
-3. Deploys `frontend/out` via Wrangler to Pages project **`docmind`**
+3. Ensures Pages project **`docmind`** exists, then deploys `frontend/out` via Wrangler
 
 ### GitHub Actions secrets
 
