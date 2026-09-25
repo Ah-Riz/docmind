@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001}
