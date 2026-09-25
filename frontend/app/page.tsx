@@ -157,9 +157,9 @@ export default function HomePage() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-sm font-semibold text-ink">AI explanation</h2>
               {result.ai.model && (
-                <p className="font-mono text-xs text-muted">
-                  Model: {result.ai.model}
-                  {result.ai.fallback_used ? " (fallback)" : ""}
+                <p className="text-xs font-medium text-tosca-700">
+                  This response is using {result.ai.model}
+                  {result.ai.fallback_used ? " (fallback)" : ""}.
                 </p>
               )}
             </div>
