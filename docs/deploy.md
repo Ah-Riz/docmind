@@ -11,11 +11,11 @@ Connect the GitHub repo as a Web Service (not via this Actions workflow).
 3. Environment on Render:
    - `OPENAI_API_KEY` (required)
    - `OPENAI_MODEL=gpt-4o-mini`
-   - `CORS_ORIGINS=https://docmind.pages.dev,http://localhost:3001`
+   - `CORS_ORIGINS=https://docmind-dbw.pages.dev,http://localhost:3001`
    - `SOLANA_RPC_URL` optional
 4. Health check: `/health`
 
-After the first Cloudflare deploy, use the exact Pages URL Cloudflare prints (often `https://docmind.pages.dev`) in `CORS_ORIGINS`.
+Production Pages URL: **https://docmind-dbw.pages.dev** (Cloudflare may also show a per-deploy `*.docmind-dbw.pages.dev` URL). Keep `CORS_ORIGINS` aligned with the production host.
 
 ## Frontend (GitHub Actions → Cloudflare Pages)
 
